@@ -2,6 +2,7 @@ package io.clubhouse4j.api.v3beta;
 
 import static com.google.common.collect.Lists.newArrayList;
 
+import java.io.IOException;
 import java.util.List;
 
 public class UsersService extends ClubhouseService {
@@ -12,7 +13,7 @@ public class UsersService extends ClubhouseService {
         super(client);
     }
 
-    public List<Member> listMembers() {
+    public List<Member> listMembers() throws IOException {
         String url = client.buildUrl(MEMBERS);
         return newArrayList(executeGet(url, Member[].class));
     }

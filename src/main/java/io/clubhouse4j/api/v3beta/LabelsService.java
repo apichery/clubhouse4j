@@ -1,5 +1,6 @@
 package io.clubhouse4j.api.v3beta;
 
+import java.io.IOException;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -15,7 +16,7 @@ public class LabelsService extends ClubhouseService {
     /**
      * List Labels returns a list of all Labels and their attributes.
      */
-    public List<Label> listLabels() {
+    public List<Label> listLabels() throws IOException {
         String url = client.buildUrl(LABELS);
         return Lists.newArrayList(executeGet(url, Label[].class));
     }
@@ -23,7 +24,7 @@ public class LabelsService extends ClubhouseService {
     /**
      * Get Label returns information about the selected Label.
      */
-    public Label getLabel(long epicId) {
+    public Label getLabel(long epicId) throws IOException {
         String url = client.buildUrl(LABELS, epicId);
         return executeGet(url, Label.class);
     }
@@ -31,7 +32,7 @@ public class LabelsService extends ClubhouseService {
     /**
      * Create Label allows you to create a new Label in Clubhouse.
      */
-    public Label createLabel(CreateLabelParams params) {
+    public Label createLabel(CreateLabelParams params) throws IOException {
         String url = client.buildUrl(LABELS);
         return executePost(url, params, Label.class);
     }
@@ -40,7 +41,7 @@ public class LabelsService extends ClubhouseService {
      * Update Label allows you to replace a Label name with another name.
      * If you try to name a Label something that already exists, you will receive a 422 response.
      */
-    public Label updateLabel(long epicId, UpdateLabelParams params) {
+    public Label updateLabel(long epicId, UpdateLabelParams params) throws IOException {
         String url = client.buildUrl(LABELS, epicId);
         return executePut(url, params, Label.class);
     }
@@ -48,7 +49,7 @@ public class LabelsService extends ClubhouseService {
     /**
      * Delete Label can be used to delete any Label.
      */
-    public void deleteLabel(long epicId) {
+    public void deleteLabel(long epicId) throws IOException {
         String url = client.buildUrl(LABELS, epicId);
         executeDelete(url);
     }
