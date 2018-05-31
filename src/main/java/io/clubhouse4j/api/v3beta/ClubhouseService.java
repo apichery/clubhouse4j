@@ -2,18 +2,31 @@ package io.clubhouse4j.api.v3beta;
 
 import static io.clubhouse4j.api.v3beta.GsonHelper.APPLICATION_JSON;
 import static io.clubhouse4j.api.v3beta.GsonHelper.GSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
+
+import com.google.api.client.http.ByteArrayContent;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpContent;
+import com.google.api.client.http.HttpMethods;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.JsonObjectParser;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.common.base.Charsets;
 
 public class ClubhouseService {
     private static final Logger logger = Logger.getLogger("io.clubhouse.api.v3beta.ClubhouseService");
+    private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+    private static final JsonFactory JSON_FACTORY = new GsonFactory();
+    private static final HttpRequestFactory HTTP_REQUEST_FACTORY = HTTP_TRANSPORT.createRequestFactory(request -> request.setParser(new JsonObjectParser(JSON_FACTORY)));
 
     protected ClubhouseClient client;
 
@@ -21,89 +34,78 @@ public class ClubhouseService {
         this.client = client;
     }
 
-    protected <T> T executeGet(String url, Class<T> classOfT) {
-        while (true) {
-            try {
-                String response = ClientBuilder.newClient().target(url).request(APPLICATION_JSON).get(String.class);
-                return GSON.fromJson(response, classOfT);
-            } catch (javax.ws.rs.ClientErrorException e) {
-                handleException(e);
-            }
-        }
+    protected <T> T executeGet(String url, Class<T> classOfT) throws IOException {
+        HttpResponse response;
+        do {
+            HttpRequest request = HTTP_REQUEST_FACTORY.buildGetRequest(new GenericUrl(url));
+            response = request.execute();
+        } while (retry(response));
+        return GSON.fromJson(response.parseAsString(), classOfT);
     }
 
-    protected <T, U> T executePost(String url, U params, Class<T> classOfT) {
+    protected <T, U> T executePost(String url, U params, Class<T> classOfT) throws IOException {
         String body = GSON.toJson(params);
-        Entity<String> entity = Entity.entity(body, APPLICATION_JSON_TYPE);
+        HttpContent httpContent = new ByteArrayContent(APPLICATION_JSON, body.getBytes(Charsets.UTF_8));
 
-        while (true) {
-            try {
-                String response = ClientBuilder.newClient().target(url).request(APPLICATION_JSON).post(entity, String.class);
-                return GSON.fromJson(response, classOfT);
-            } catch (javax.ws.rs.ClientErrorException e) {
-                handleException(e);
-            }
-        }
+        HttpResponse response;
+        do {
+            HttpRequest request = HTTP_REQUEST_FACTORY.buildPostRequest(new GenericUrl(url), httpContent);
+            response = request.execute();
+        } while (retry(response));
+        return GSON.fromJson(response.parseAsString(), classOfT);
     }
 
-    protected <T, U> T executePut(String url, U params, Class<T> classOfT) {
+    protected <T, U> T executePut(String url, U params, Class<T> classOfT) throws IOException {
         String body = GSON.toJson(params);
-        Entity<String> entity = Entity.entity(body, APPLICATION_JSON_TYPE);
+        HttpContent httpContent = new ByteArrayContent(APPLICATION_JSON, body.getBytes(Charsets.UTF_8));
 
-        while (true) {
-            try {
-                String response = ClientBuilder.newClient().target(url).request(APPLICATION_JSON).put(entity, String.class);
-                return GSON.fromJson(response, classOfT);
-            } catch (javax.ws.rs.ClientErrorException e) {
-                handleException(e);
-            }
+        HttpResponse response;
+        do {
+            HttpRequest request = HTTP_REQUEST_FACTORY.buildPutRequest(new GenericUrl(url), httpContent);
+            response = request.execute();
+        } while (retry(response));
+        return GSON.fromJson(response.parseAsString(), classOfT);
+    }
+
+    protected void executeDelete(String url) throws IOException {
+        HttpResponse response;
+        do {
+            HttpRequest request = HTTP_REQUEST_FACTORY.buildDeleteRequest(new GenericUrl(url));
+            response = request.execute();
+        } while (retry(response));
+        if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
+            throw new IOException("Unable to execute DELETE request. HTTP returned " + response.getStatusCode() + ". " + response.getStatusMessage());
         }
     }
 
-    protected void executeDelete(String url) {
-        while (true) {
-            try {
-                Response response = ClientBuilder.newClient().target(url).request(APPLICATION_JSON).delete();
-                if (response.getStatus() < 200 || response.getStatus() >= 300) {
-                    throw new ClientErrorException(response);
-                }
-                return;
-            } catch (javax.ws.rs.ClientErrorException e) {
-                handleException(e);
-            }
-        }
-    }
-
-    protected <T> void executeDelete(String url, T params) {
+    protected <T> void executeDelete(String url, T params) throws IOException {
         String body = GSON.toJson(params);
-        Entity<String> entity = Entity.entity(body, APPLICATION_JSON_TYPE);
+        HttpContent httpContent = new ByteArrayContent(APPLICATION_JSON, body.getBytes(Charsets.UTF_8));
 
-        while (true) {
-            try {
-                Response response = ClientBuilder.newClient().target(url).request(APPLICATION_JSON).build("DELETE", entity).invoke();
-                if (response.getStatus() < 200 || response.getStatus() >= 300) {
-                    throw new ClientErrorException(response);
-                }
-                return;
-            } catch (javax.ws.rs.ClientErrorException e) {
-                handleException(e);
-            }
+        HttpResponse response;
+        do {
+            HttpRequest request = HTTP_REQUEST_FACTORY.buildRequest(HttpMethods.DELETE, new GenericUrl(url), httpContent);
+            response = request.execute();
+        } while (retry(response));
+        if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
+            throw new IOException("Unable to execute DELETE request. HTTP returned " + response.getStatusCode() + ". " + response.getStatusMessage());
         }
     }
 
-    private void handleException(ClientErrorException e) {
-        if (e.getResponse().getStatus() == 429) {
+    private boolean retry(HttpResponse response) {
+        if (response.getStatusCode() == 429) {
             // Retry
             try {
                 int delay = new Random().nextInt(30000);
                 logger.log(Level.FINE, "Throttling..." + Thread.currentThread().getName() + " for " + delay + " sec");
                 Thread.sleep(delay);
+                return true;
             } catch (InterruptedException interruptedException) {
                 Thread.currentThread().interrupt();
-                throw new RuntimeException("Interrupted while throttling Clubhouse Rest API.", e);
+                throw new RuntimeException("Interrupted while throttling Clubhouse Rest API.");
             }
         } else {
-            throw e;
+            return false;
         }
     }
 }
