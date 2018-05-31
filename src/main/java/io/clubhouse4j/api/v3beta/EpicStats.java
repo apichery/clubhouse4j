@@ -1,8 +1,6 @@
-package io.clubhouse.api.v3beta;
+package io.clubhouse4j.api.v3beta;
 
 import java.time.Instant;
-
-import com.google.gson.Gson;
 
 public class EpicStats {
     /**

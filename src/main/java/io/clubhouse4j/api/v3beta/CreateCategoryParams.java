@@ -1,4 +1,4 @@
-package io.clubhouse.api.v3beta;
+package io.clubhouse4j.api.v3beta;
 
 /**
  * Request parameters for creating a Category with a Milestone.

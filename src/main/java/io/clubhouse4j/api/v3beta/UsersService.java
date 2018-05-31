@@ -1,4 +1,4 @@
-package io.clubhouse.api.v3beta;
+package io.clubhouse4j.api.v3beta;
 
 import static com.google.common.collect.Lists.newArrayList;
 

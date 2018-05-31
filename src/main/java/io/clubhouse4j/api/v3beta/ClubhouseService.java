@@ -1,7 +1,7 @@
-package io.clubhouse.api.v3beta;
+package io.clubhouse4j.api.v3beta;
 
-import static io.clubhouse.api.v3beta.GsonHelper.APPLICATION_JSON;
-import static io.clubhouse.api.v3beta.GsonHelper.GSON;
+import static io.clubhouse4j.api.v3beta.GsonHelper.APPLICATION_JSON;
+import static io.clubhouse4j.api.v3beta.GsonHelper.GSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import java.util.Random;
@@ -11,8 +11,6 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-
-import com.google.common.util.concurrent.UncheckedExecutionException;
 
 public class ClubhouseService {
     private static final Logger logger = Logger.getLogger("io.clubhouse.api.v3beta.ClubhouseService");

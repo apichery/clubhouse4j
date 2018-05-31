@@ -1,4 +1,4 @@
-package io.clubhouse.api.v3beta;
+package io.clubhouse4j.api.v3beta;
 
 import java.util.List;
 import java.util.UUID;

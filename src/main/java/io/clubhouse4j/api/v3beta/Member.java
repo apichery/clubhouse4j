@@ -1,11 +1,9 @@
-package io.clubhouse.api.v3beta;
+package io.clubhouse4j.api.v3beta;
 
-import static io.clubhouse.api.v3beta.GsonHelper.GSON;
+import static io.clubhouse4j.api.v3beta.GsonHelper.GSON;
 
 import java.time.Instant;
 import java.util.UUID;
-
-import com.google.gson.Gson;
 
 public class Member {
     /**
