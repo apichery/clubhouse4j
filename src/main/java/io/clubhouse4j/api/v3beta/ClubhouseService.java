@@ -15,12 +15,13 @@ import com.google.api.client.http.HttpMethods;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpResponseException;
 import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.common.base.Charsets;
+import io.clubhouse4j.api.client.http.javanet.NetHttpTransport;
 
 public class ClubhouseService {
     private static final Logger logger = Logger.getLogger("io.clubhouse.api.v3beta.ClubhouseService");
@@ -38,8 +39,12 @@ public class ClubhouseService {
         HttpResponse response;
         do {
             HttpRequest request = HTTP_REQUEST_FACTORY.buildGetRequest(new GenericUrl(url));
+            request.setThrowExceptionOnExecuteError(false);
             response = request.execute();
         } while (retry(response));
+        if (!response.isSuccessStatusCode()) {
+            throw new HttpResponseException(response);
+        }
         return GSON.fromJson(response.parseAsString(), classOfT);
     }
 
@@ -50,8 +55,12 @@ public class ClubhouseService {
         HttpResponse response;
         do {
             HttpRequest request = HTTP_REQUEST_FACTORY.buildPostRequest(new GenericUrl(url), httpContent);
+            request.setThrowExceptionOnExecuteError(false);
             response = request.execute();
         } while (retry(response));
+        if (!response.isSuccessStatusCode()) {
+            throw new HttpResponseException(response);
+        }
         return GSON.fromJson(response.parseAsString(), classOfT);
     }
 
@@ -62,8 +71,12 @@ public class ClubhouseService {
         HttpResponse response;
         do {
             HttpRequest request = HTTP_REQUEST_FACTORY.buildPutRequest(new GenericUrl(url), httpContent);
+            request.setThrowExceptionOnExecuteError(false);
             response = request.execute();
         } while (retry(response));
+        if (!response.isSuccessStatusCode()) {
+            throw new HttpResponseException(response);
+        }
         return GSON.fromJson(response.parseAsString(), classOfT);
     }
 
@@ -71,10 +84,11 @@ public class ClubhouseService {
         HttpResponse response;
         do {
             HttpRequest request = HTTP_REQUEST_FACTORY.buildDeleteRequest(new GenericUrl(url));
+            request.setThrowExceptionOnExecuteError(false);
             response = request.execute();
         } while (retry(response));
-        if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
-            throw new IOException("Unable to execute DELETE request. HTTP returned " + response.getStatusCode() + ". " + response.getStatusMessage());
+        if (!response.isSuccessStatusCode()) {
+            throw new HttpResponseException(response);
         }
     }
 
@@ -85,10 +99,11 @@ public class ClubhouseService {
         HttpResponse response;
         do {
             HttpRequest request = HTTP_REQUEST_FACTORY.buildRequest(HttpMethods.DELETE, new GenericUrl(url), httpContent);
+            request.setThrowExceptionOnExecuteError(false);
             response = request.execute();
         } while (retry(response));
-        if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
-            throw new IOException("Unable to execute DELETE request. HTTP returned " + response.getStatusCode() + ". " + response.getStatusMessage());
+        if (!response.isSuccessStatusCode()) {
+            throw new HttpResponseException(response);
         }
     }
 
@@ -96,9 +111,9 @@ public class ClubhouseService {
         if (response.getStatusCode() == 429) {
             // Retry
             try {
-                int delay = new Random().nextInt(30000);
+                int delay = 30 + new Random().nextInt(30);
                 logger.log(Level.FINE, "Throttling..." + Thread.currentThread().getName() + " for " + delay + " sec");
-                Thread.sleep(delay);
+                Thread.sleep(delay * 1000);
                 return true;
             } catch (InterruptedException interruptedException) {
                 Thread.currentThread().interrupt();
